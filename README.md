@@ -58,6 +58,12 @@ cd frontend && npm install && npm run dev
 | GET | `/me/skills` | Навыки пользователя с уровнем и источником (`CV_EXTRACTED`, `ASSESSED`, …) |
 | GET | `/me/background` | Опыт работы и образование |
 | GET | `/skills?q=` | Каталог навыков (публичный) |
+| GET | `/professions` | Профессии MVP (публичный) |
+| GET | `/professions/{slug}` | Профессия с базовыми требованиями к навыкам |
+| GET | `/me/career-goals` | Карьерные цели (основная — первой) |
+| POST | `/me/career-goals` | Добавить цель `{professionSlug, primary?}` (макс. 3; первая — основная) |
+| PUT | `/me/career-goals/{id}/primary` | Сделать цель основной |
+| DELETE | `/me/career-goals/{id}` | Удалить цель (основной становится самая ранняя из оставшихся) |
 | POST | `/resumes` | Загрузка CV (multipart `file`, PDF ≤ 10 МБ) → извлечение данных |
 | GET | `/resumes`, `/resumes/{id}` | Список / одно CV с извлечёнными данными |
 | GET | `/resumes/{id}/file` | Исходный PDF (только владелец) |
