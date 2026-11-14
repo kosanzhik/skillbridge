@@ -67,6 +67,8 @@ cd frontend && npm install && npm run dev
 | GET | `/me/job-matches?limit=` | Вакансии основной цели с объяснимым % совпадения |
 | GET | `/jobs/{id}` | Вакансия с описанием и требованиями |
 | POST | `/admin/jobs/hh/import?profession=&limit=` | (ADMIN) импорт вакансий с hh.kz |
+| POST | `/admin/jobs/telegram/import` | (ADMIN) импорт истории канала из экспорта Telegram Desktop (`result.json`) |
+| POST | `/admin/jobs/telegram/poll` | (ADMIN) забрать новые посты канала через бота |
 | POST | `/resumes` | Загрузка CV (multipart `file`, PDF ≤ 10 МБ) → извлечение данных |
 | GET | `/resumes`, `/resumes/{id}` | Список / одно CV с извлечёнными данными |
 | GET | `/resumes/{id}/file` | Исходный PDF (только владелец) |
@@ -94,6 +96,23 @@ cd frontend && npm install && npm run dev
   (анонимно — 403): зарегистрируйте приложение на https://dev.hh.ru и задайте `HH_APP_TOKEN`
   или `HH_CLIENT_ID`/`HH_CLIENT_SECRET`. Импорт: admin-эндпоинт или ежедневно в 06:00
   (`HH_SCHEDULE_ENABLED=true`). Роль ADMIN выдаётся email-ам из `ADMIN_EMAILS`.
+- **Telegram-канал команды**: бот (`TELEGRAM_BOT_TOKEN`) добавляется администратором канала
+  (`TELEGRAM_CHANNEL`) и получает новые посты через `getUpdates` (`TELEGRAM_POLLING_ENABLED=true`, раз в 30 с).
+  Bot API не читает историю — старые посты импортируются из экспорта Telegram Desktop (JSON).
+  Посты по шаблону разбираются точно; свободные посты — через AI (если задан ключ), иначе пропускаются.
+  Ссылка на источник — внешняя ссылка из поста или сам пост `t.me/...`. Шаблон поста:
+  ```
+  #вакансия
+  Должность: Junior Data Analyst
+  Компания: Example
+  Город: Алматы
+  Зарплата: 400 000–600 000 KZT
+  Опыт: 1–3 года
+  Формат: гибрид
+  Требования: SQL, Excel, Power BI
+  Желательно: Python
+  Ссылка: https://...
+  ```
 - Требования извлекаются детерминированно: `key_skills` → обязательные; навыки каталога в тексте —
   обязательные, а под заголовком «Будет плюсом / Желательно» — желательные.
 - **Формула совпадения**: `Σ(weight × credit) / Σ(weight) × 100`, weight = 2 (обязательный) / 1 (желательный),
