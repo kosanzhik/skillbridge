@@ -132,7 +132,7 @@ class SkillGapRoadmapTests {
             String reqs = "Git, SQL" + (i < 3 ? ", Docker" : "") + (i == 0 ? ", React" : "");
             jobImport.upsert(new ImportedJob(JobSource.HH, "se-" + i, se, "Software Engineer " + i, "Co", "Алматы",
                     null, null, null, null, null, null, null, "Требования:\n" + reqs, "https://hh.kz/vacancy/se" + i,
-                    Instant.now(), false, List.of(), List.of()));
+                    Instant.now(), false, List.of(), List.of(), null, null, false));
         }
         String auth = demoWithGoal("software-engineer");
         mvc.perform(get("/me/skill-gap").header("Authorization", auth))

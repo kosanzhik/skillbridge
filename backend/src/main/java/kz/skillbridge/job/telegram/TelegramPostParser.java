@@ -90,7 +90,10 @@ public class TelegramPostParser {
                 post.publishedAt(),
                 false,
                 splitList(fields.get("required")),
-                splitList(fields.get("preferred"))));
+                splitList(fields.get("preferred")),
+                null,
+                null,
+                false));
     }
 
     static String externalId(TelegramPost post) {

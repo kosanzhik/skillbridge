@@ -74,7 +74,7 @@ class AiTelegramPostParser {
         return Optional.of(new ImportedJob(JobSource.TELEGRAM, TelegramPostParser.externalId(post), null, e.title(),
                 e.company(), e.location(), from, to, from == null && to == null ? null : e.currency(), null,
                 e.experience(), null, e.schedule(), post.text().strip(), url, post.publishedAt(), false,
-                e.requiredSkills(), e.preferredSkills()));
+                e.requiredSkills(), e.preferredSkills(), null, null, false));
     }
 
     private static Integer positive(Integer v) {

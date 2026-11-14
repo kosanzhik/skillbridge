@@ -23,5 +23,8 @@ public record ImportedJob(
         Instant publishedAt,
         boolean archived,
         List<String> explicitSkills,
-        List<String> explicitPreferredSkills) {
+        List<String> explicitPreferredSkills,
+        String salaryPeriod,
+        String salaryText,
+        boolean remote) {
 }

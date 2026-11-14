@@ -4,3 +4,6 @@ skillbridge:
     path: target/test-storage
   openai:
     api-key: ""
+  remote-jobs:
+    import-on-startup: false
+    schedule-enabled: false

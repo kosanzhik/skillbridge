@@ -33,6 +33,9 @@ public class JobImportService {
         job.setSalaryTo(in.salaryTo());
         job.setSalaryCurrency(truncate(in.salaryCurrency(), 10));
         job.setSalaryGross(in.salaryGross());
+        job.setSalaryPeriod(in.salaryPeriod());
+        job.setSalaryText(truncate(in.salaryText(), 150));
+        job.setRemote(in.remote());
         job.setExperience(truncate(in.experience(), 100));
         job.setEmployment(truncate(in.employment(), 100));
         job.setSchedule(truncate(in.schedule(), 100));

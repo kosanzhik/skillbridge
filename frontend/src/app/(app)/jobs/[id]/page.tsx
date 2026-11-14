@@ -7,7 +7,7 @@ import { ErrorState, Loading, PageHeader } from "@/components/app/common";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { api } from "@/lib/api";
-import { formatDate, formatSalary, NOT_SPECIFIED } from "@/lib/labels";
+import { formatDate, jobSalary, NOT_SPECIFIED, SOURCE_INFO } from "@/lib/labels";
 import type { JobDetail } from "@/lib/types";
 
 export default function JobPage() {
@@ -18,15 +18,16 @@ export default function JobPage() {
   const { job: j, description, requirements, employment } = q.data!;
   const rows: [string, string][] = [
     ["Компания", j.company ?? NOT_SPECIFIED], ["Локация", j.location ?? NOT_SPECIFIED],
-    ["Зарплата", formatSalary(j.salaryFrom, j.salaryTo, j.salaryCurrency) + (j.salaryGross === true ? " (до вычета налогов)" : j.salaryGross === false ? " (на руки)" : "")],
+    ["Зарплата", jobSalary(j) + (j.salaryGross === true ? " (до вычета налогов)" : j.salaryGross === false ? " (на руки)" : "")],
+    ["Формат", j.remote ? "Удалённо, международная вакансия" : j.schedule ?? NOT_SPECIFIED],
     ["Опыт", j.experience ?? NOT_SPECIFIED], ["Занятость", employment ?? NOT_SPECIFIED], ["График", j.schedule ?? NOT_SPECIFIED],
-    ["Опубликовано", formatDate(j.publishedAt)], ["Источник", j.source === "HH" ? "hh.kz" : "Telegram-канал"],
+    ["Опубликовано", formatDate(j.publishedAt)], ["Источник", SOURCE_INFO[j.source].name],
   ];
   return (
     <>
       <PageHeader title={j.title} actions={
-        <a href={j.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-sm underline">
-          Открыть оригинал <ExternalLink className="size-3" />
+        <a href={j.url} target="_blank" rel="noopener" className="inline-flex items-center gap-1 text-sm underline">
+          Открыть на {SOURCE_INFO[j.source].name} <ExternalLink className="size-3" />
         </a>} />
       <div className="grid gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-1">

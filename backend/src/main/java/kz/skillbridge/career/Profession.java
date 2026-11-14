@@ -35,6 +35,10 @@ public class Profession {
     @Column(name = "hh_query")
     private String hhQuery;
 
+    /** Comma-separated phrases that identify this profession in vacancy titles. */
+    @Column(name = "title_keywords")
+    private String titleKeywords;
+
     @OneToMany(mappedBy = "profession")
     private List<ProfessionSkill> skills = new ArrayList<>();
 }

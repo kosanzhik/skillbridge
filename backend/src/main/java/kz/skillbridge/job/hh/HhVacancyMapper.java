@@ -50,7 +50,19 @@ final class HhVacancyMapper {
                 parseDate(text(v, "published_at")),
                 v.path("archived").asBoolean(false),
                 keySkills,
-                List.of());
+                List.of(),
+                integer(salary, "from") == null && integer(salary, "to") == null ? null : period(salary),
+                null,
+                "remote".equals(text(v.path("schedule"), "id")));
+    }
+
+    /** hh salary_range.mode: MONTH, HOUR, SHIFT, FLY_IN_FLY_OUT; legacy salary has no mode and is monthly. */
+    private static String period(JsonNode salary) {
+        String mode = text(salary.path("mode"), "id");
+        if (mode == null || "MONTH".equalsIgnoreCase(mode)) {
+            return "MONTH";
+        }
+        return "HOUR".equalsIgnoreCase(mode) ? "HOUR" : null;
     }
 
     static Instant parseDate(String s) {

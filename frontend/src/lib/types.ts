@@ -44,9 +44,11 @@ export interface ProfessionDetail extends ProfessionRef {
 }
 export interface CareerGoal { id: number; profession: ProfessionRef; primary: boolean; createdAt: string }
 
+export type JobSource = "HH" | "TELEGRAM" | "REMOTIVE" | "HIMALAYAS";
 export interface JobSummary {
-  id: number; source: "HH" | "TELEGRAM"; title: string; company: string | null; location: string | null;
+  id: number; source: JobSource; title: string; company: string | null; location: string | null;
   salaryFrom: number | null; salaryTo: number | null; salaryCurrency: string | null; salaryGross: boolean | null;
+  salaryPeriod: "HOUR" | "DAY" | "WEEK" | "MONTH" | "YEAR" | null; salaryText: string | null; remote: boolean;
   experience: string | null; schedule: string | null; url: string; publishedAt: string | null;
 }
 export interface SkillMatch {

@@ -6,6 +6,7 @@ import kz.skillbridge.common.ApiException;
 import kz.skillbridge.job.dto.JobDetail;
 import kz.skillbridge.job.dto.JobSummary;
 import kz.skillbridge.job.hh.HhImporter;
+import kz.skillbridge.job.remote.RemoteJobsImporter;
 import kz.skillbridge.skill.dto.SkillDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +22,7 @@ public class JobController {
 
     private final JobRepository jobs;
     private final HhImporter hhImporter;
+    private final RemoteJobsImporter remoteImporter;
 
     @GetMapping("/jobs/{id}")
     @Transactional(readOnly = true)
@@ -31,6 +33,12 @@ public class JobController {
                 .map(s -> new JobDetail.Requirement(SkillDto.from(s.getSkill()), s.getRequirementType()))
                 .toList();
         return new JobDetail(JobSummary.from(j), j.getEmployment(), j.getDescription(), reqs);
+    }
+
+    /** Admin: import remote vacancies open to Kazakhstan from Remotive and Himalayas. */
+    @PostMapping("/admin/jobs/remote/import")
+    public List<RemoteJobsImporter.Result> importRemote() {
+        return remoteImporter.importAll();
     }
 
     /** Admin: import vacancies from hh.ru for one profession, or all when {@code profession} is omitted. */

@@ -29,7 +29,7 @@ public class SkillNormalizer {
         if (rawName == null) {
             return Optional.empty();
         }
-        return Optional.ofNullable(index().get(normalize(rawName)));
+        return Optional.ofNullable(index(true).get(normalize(rawName)));
     }
 
     /** Finds catalog skills mentioned in text, keyed by skill id, with the term that matched. */
@@ -39,7 +39,8 @@ public class SkillNormalizer {
             return found;
         }
         String haystack = normalize(text);
-        for (Map.Entry<String, Skill> e : index().entrySet()) {
+        // slugs are identifiers, not natural phrases: "requirements"/"testing" would match ordinary headings
+        for (Map.Entry<String, Skill> e : index(false).entrySet()) {
             String term = e.getKey();
             if (term.length() < 2 || TEXT_SCAN_STOPWORDS.contains(term) || found.containsKey(e.getValue())) {
                 continue;
@@ -52,10 +53,10 @@ public class SkillNormalizer {
         return found;
     }
 
-    private Map<String, Skill> index() {
+    private Map<String, Skill> index(boolean includeSlugs) {
         Map<String, Skill> idx = new HashMap<>();
         for (Skill s : skills.findAll()) {
-            List<String> terms = new ArrayList<>(List.of(s.getSlug(), s.getName()));
+            List<String> terms = new ArrayList<>(includeSlugs ? List.of(s.getSlug(), s.getName()) : List.of(s.getName()));
             terms.addAll(s.aliasList());
             for (String t : terms) {
                 idx.putIfAbsent(normalize(t), s);

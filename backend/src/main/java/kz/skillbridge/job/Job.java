@@ -62,6 +62,17 @@ public class Job {
     @Column(name = "salary_gross")
     private Boolean salaryGross;
 
+    /** HOUR, DAY, WEEK, MONTH, YEAR; null when not stated. */
+    @Column(name = "salary_period")
+    private String salaryPeriod;
+
+    /** Salary exactly as published, when the source only gives free text. */
+    @Column(name = "salary_text")
+    private String salaryText;
+
+    @Column(nullable = false)
+    private boolean remote;
+
     private String experience;
     private String employment;
     private String schedule;

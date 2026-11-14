@@ -1,3 +1,4 @@
 package kz.skillbridge.job;
 
-public enum JobSource { HH, TELEGRAM }
+/** HH, TELEGRAM — Kazakhstan sources; REMOTIVE, HIMALAYAS — international remote job boards. */
+public enum JobSource { HH, TELEGRAM, REMOTIVE, HIMALAYAS }

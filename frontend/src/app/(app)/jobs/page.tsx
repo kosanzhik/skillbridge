@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { api } from "@/lib/api";
-import { formatDate, formatSalary, NOT_SPECIFIED } from "@/lib/labels";
+import { formatDate, jobSalary, NOT_SPECIFIED, SOURCE_INFO } from "@/lib/labels";
 import type { JobMatch, MatchesResponse, SkillMatch } from "@/lib/types";
 
 function SkillChips({ items, tone }: { items: SkillMatch[]; tone: "ok" | "partial" | "missing" }) {
@@ -38,8 +38,9 @@ function MatchCard({ m }: { m: JobMatch }) {
               <Link href={`/jobs/${j.id}`} className="hover:underline">{j.title}</Link>
             </CardTitle>
             <p className="mt-1 text-sm text-muted-foreground">
-              {j.company ?? NOT_SPECIFIED} · {j.location ?? NOT_SPECIFIED} · {j.source === "HH" ? "hh.kz" : "Telegram"}
+              {j.company ?? NOT_SPECIFIED} · {j.location ?? NOT_SPECIFIED}
             </p>
+            {j.remote && <Badge variant="outline" className="mt-2">удалённо · международная вакансия</Badge>}
           </div>
           <div className="text-right">
             <div className="text-2xl font-semibold tabular-nums">{m.score == null ? "—" : `${Math.round(m.score)}%`}</div>
@@ -55,11 +56,11 @@ function MatchCard({ m }: { m: JobMatch }) {
         {m.partial.length > 0 && <div><div className="mb-1 text-xs text-muted-foreground">Нужно подтянуть</div><SkillChips items={m.partial} tone="partial" /></div>}
         {m.missing.length > 0 && <div><div className="mb-1 text-xs text-muted-foreground">Нужно развить</div><SkillChips items={m.missing} tone="missing" /></div>}
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-muted-foreground">
-          <span>Зарплата: {formatSalary(j.salaryFrom, j.salaryTo, j.salaryCurrency)}</span>
+          <span>Зарплата: {jobSalary(j)}</span>
           <span>Опыт: {j.experience ?? NOT_SPECIFIED}</span>
           <span>Опубликовано: {formatDate(j.publishedAt)}</span>
-          <a href={j.url} target="_blank" rel="noopener noreferrer" className="ml-auto inline-flex items-center gap-1 text-foreground underline">
-            Оригинал <ExternalLink className="size-3" />
+          <a href={j.url} target="_blank" rel="noopener" className="ml-auto inline-flex items-center gap-1 text-foreground underline">
+            Открыть на {SOURCE_INFO[j.source].name} <ExternalLink className="size-3" />
           </a>
         </div>
       </CardContent>
@@ -76,6 +77,12 @@ export default function JobsPage() {
     <>
       <PageHeader title={`Вакансии: ${d.profession.title}`}
         description={`Проанализировано вакансий: ${d.jobsAnalyzed}. ${d.disclaimer}`} />
+      <p className="-mt-4 mb-6 text-xs text-muted-foreground">
+        Источники: <a className="underline" href="https://hh.kz" target="_blank" rel="noopener">hh.kz</a>,{" "}
+        <a className="underline" href="https://remotive.com" target="_blank" rel="noopener">Remotive</a>,{" "}
+        <a className="underline" href="https://himalayas.app" target="_blank" rel="noopener">Himalayas</a>.
+        Отклик — на сайте источника по ссылке «Открыть на…».
+      </p>
       <details className="mb-6 rounded-xl border p-4 text-sm">
         <summary className="cursor-pointer font-medium">Как считается процент совпадения</summary>
         <p className="mt-2 text-muted-foreground">{d.methodology}</p>
@@ -84,8 +91,8 @@ export default function JobsPage() {
       </details>
       {d.matches.length === 0 ? (
         <Empty title="Вакансий пока нет">
-          Вакансии загружаются из hh.kz и Telegram-канала команды. Мы не показываем выдуманные вакансии —
-          как только источник подключён и импорт выполнен, они появятся здесь.
+          Вакансии загружаются из hh.kz и открытых площадок удалённой работы (Remotive, Himalayas) — только
+          доступные из Казахстана. Выдуманных вакансий мы не показываем: если подходящих сейчас нет, список пуст.
         </Empty>
       ) : (
         <div className="space-y-4">{d.matches.map((m) => <MatchCard key={m.job.id} m={m} />)}</div>

@@ -87,6 +87,7 @@ JWT хранится в `localStorage`; адрес API — `NEXT_PUBLIC_API_URL`
 | GET | `/me/job-matches?limit=` | Вакансии основной цели с объяснимым % совпадения |
 | GET | `/jobs/{id}` | Вакансия с описанием и требованиями |
 | POST | `/admin/jobs/hh/import?profession=&limit=` | (ADMIN) импорт вакансий с hh.kz |
+| POST | `/admin/jobs/remote/import` | (ADMIN) импорт удалённых вакансий Remotive + Himalayas |
 | POST | `/admin/jobs/telegram/import` | (ADMIN) импорт истории канала из экспорта Telegram Desktop (`result.json`) |
 | POST | `/admin/jobs/telegram/poll` | (ADMIN) забрать новые посты канала через бота |
 | GET | `/me/skill-gap` | Skill Gap + Job Readiness Score по основной цели |
@@ -127,6 +128,12 @@ JWT хранится в `localStorage`; адрес API — `NEXT_PUBLIC_API_URL`
   (анонимно — 403): зарегистрируйте приложение на https://dev.hh.ru и задайте `HH_APP_TOKEN`
   или `HH_CLIENT_ID`/`HH_CLIENT_SECRET`. Импорт: admin-эндпоинт или ежедневно в 06:00
   (`HH_SCHEDULE_ENABLED=true`). Роль ADMIN выдаётся email-ам из `ADMIN_EMAILS`.
+- **Remotive и Himalayas** (открытые API, ключ не нужен): международные удалённые вакансии, **доступные из Казахстана**
+  (Himalayas — фильтр `country=Kazakhstan`, Remotive — «Worldwide»). Поиск у API нестрогий, поэтому вакансия попадает
+  в профессию только если её **название** совпадает с ключевыми словами профессии (`professions.title_keywords`).
+  Импорт при старте (если таких вакансий ещё нет) и ежедневно в 06:30; не обновлявшиеся 14 дней — в архив.
+  Зарплата: диапазон с периодом (`/год`, `/мес`) или текст источника как есть. В интерфейсе — подпись источника и
+  ссылка «Открыть на Remotive/Himalayas» (требование условий API).
 - **Telegram-канал команды**: бот (`TELEGRAM_BOT_TOKEN`) добавляется администратором канала
   (`TELEGRAM_CHANNEL`) и получает новые посты через `getUpdates` (`TELEGRAM_POLLING_ENABLED=true`, раз в 30 с).
   Bot API не читает историю — старые посты импортируются из экспорта Telegram Desktop (JSON).
@@ -183,6 +190,7 @@ JWT хранится в `localStorage`; адрес API — `NEXT_PUBLIC_API_URL`
 - `V3__resume_parser.sql` — тип парсера CV
 - `V4__learning_content.sql` — темы обучения по навыкам и учебные материалы
 - `V5__challenges_and_sandbox.sql` — SQL-песочница, учебный датасет и 17 практических заданий
+- `V6__remote_job_sources.sql` — период/текст зарплаты, признак удалённой работы, ключевые слова профессий
 
 ## Тесты
 
