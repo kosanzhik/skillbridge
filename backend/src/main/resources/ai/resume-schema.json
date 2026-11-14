@@ -1,0 +1,80 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["fullName", "headline", "location", "languages", "experiences", "educations", "projects", "certifications", "skills"],
+  "properties": {
+    "fullName": { "type": ["string", "null"] },
+    "headline": { "type": ["string", "null"], "description": "Current role or short professional summary, as stated in the CV" },
+    "location": { "type": ["string", "null"] },
+    "languages": { "type": "array", "items": { "type": "string" }, "description": "Spoken languages, e.g. 'English (B2)'" },
+    "experiences": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["company", "title", "startDate", "endDate", "description"],
+        "properties": {
+          "company": { "type": ["string", "null"] },
+          "title": { "type": "string" },
+          "startDate": { "type": ["string", "null"], "description": "YYYY-MM or YYYY" },
+          "endDate": { "type": ["string", "null"], "description": "YYYY-MM or YYYY; null if current or not stated" },
+          "description": { "type": ["string", "null"] }
+        }
+      }
+    },
+    "educations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["institution", "degree", "field", "startYear", "endYear"],
+        "properties": {
+          "institution": { "type": "string" },
+          "degree": { "type": ["string", "null"] },
+          "field": { "type": ["string", "null"] },
+          "startYear": { "type": ["integer", "null"] },
+          "endYear": { "type": ["integer", "null"] }
+        }
+      }
+    },
+    "projects": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "description", "skills"],
+        "properties": {
+          "name": { "type": "string" },
+          "description": { "type": ["string", "null"] },
+          "skills": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
+    "certifications": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "issuer", "year"],
+        "properties": {
+          "name": { "type": "string" },
+          "issuer": { "type": ["string", "null"] },
+          "year": { "type": ["integer", "null"] }
+        }
+      }
+    },
+    "skills": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "level", "evidence"],
+        "properties": {
+          "name": { "type": "string", "description": "Canonical English skill or tool name, e.g. 'SQL', 'Power BI', 'Financial Modeling'" },
+          "level": { "type": "integer", "description": "Estimated proficiency 1-5 based only on CV evidence" },
+          "evidence": { "type": "string", "description": "Short quote or fact from the CV supporting this skill" }
+        }
+      }
+    }
+  }
+}

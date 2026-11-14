@@ -1,0 +1,80 @@
+spring:
+  application:
+    name: skillbridge
+  config:
+    # local secrets: repo-root .env (run from backend/) or ./.env; real env vars still take precedence
+    import:
+      - optional:file:../.env[.properties]
+      - optional:file:.env[.properties]
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${POSTGRES_PORT:5434}/${POSTGRES_DB:skillbridge}
+    username: ${POSTGRES_USER:skillbridge}
+    password: ${POSTGRES_PASSWORD:skillbridge}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  flyway:
+    enabled: true
+    placeholders:
+      sandbox_user: ${SANDBOX_DB_USER:skillbridge_sandbox}
+      sandbox_password: ${SANDBOX_DB_PASSWORD:sandbox-dev-only}
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+
+skillbridge:
+  jwt:
+    secret: ${JWT_SECRET:dev-only-secret-change-me-dev-only-secret-change-me}
+    ttl-minutes: 1440
+  openai:
+    api-key: ${OPENAI_API_KEY:}
+    model: ${OPENAI_MODEL:gpt-4o-mini}
+    base-url: ${OPENAI_BASE_URL:https://api.openai.com/v1}
+    timeout-seconds: 90
+  hh:
+    user-agent: ${HH_USER_AGENT:SkillBridge/0.1}
+    base-url: ${HH_BASE_URL:https://api.hh.ru}
+    token-url: ${HH_TOKEN_URL:https://api.hh.ru/token}
+    app-token: ${HH_APP_TOKEN:}
+    client-id: ${HH_CLIENT_ID:}
+    client-secret: ${HH_CLIENT_SECRET:}
+    area: ${HH_AREA:40}   # 40 = Kazakhstan
+    per-profession-limit: 50
+    schedule-enabled: ${HH_SCHEDULE_ENABLED:false}
+  remote-jobs:   # international remote boards with open APIs (credit + link to source required)
+    enabled: ${REMOTE_JOBS_ENABLED:true}
+    schedule-enabled: ${REMOTE_JOBS_SCHEDULE_ENABLED:true}
+    import-on-startup: ${REMOTE_JOBS_IMPORT_ON_STARTUP:true}
+    user-agent: SkillBridge/0.1 (job-matching prototype)
+    remotive-base-url: https://remotive.com
+    himalayas-base-url: https://himalayas.app
+    country: Kazakhstan
+    only-open-to-country: ${REMOTE_JOBS_ONLY_OPEN_TO_KZ:false}
+    per-profession-limit: 60
+    stale-after-days: 14
+  telegram:
+    bot-token: ${TELEGRAM_BOT_TOKEN:}
+    channel: ${TELEGRAM_CHANNEL:}   # public username without @, or numeric id -100...
+    api-base-url: ${TELEGRAM_API_BASE_URL:https://api.telegram.org}
+    polling-enabled: ${TELEGRAM_POLLING_ENABLED:false}
+  sandbox:   # unprivileged DB role for running user SQL in challenges
+    username: ${SANDBOX_DB_USER:skillbridge_sandbox}
+    password: ${SANDBOX_DB_PASSWORD:sandbox-dev-only}
+  admin-emails: ${ADMIN_EMAILS:}
+  storage:
+    path: ${STORAGE_PATH:./storage}
+  cors:
+    allowed-origins: ${CORS_ORIGINS:http://localhost:3000}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

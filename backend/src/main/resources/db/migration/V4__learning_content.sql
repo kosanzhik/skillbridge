@@ -1,0 +1,106 @@
+-- Learning topics per skill (used for roadmap modules) and curated learning resources.
+-- Every URL below was checked to resolve (HTTP 200) on 2026-11-14; LinkChecker re-verifies them periodically.
+
+ALTER TABLE skills ADD COLUMN learning_topics TEXT; -- ';'-separated topics for roadmap modules
+ALTER TABLE learning_resources ADD COLUMN check_failed BOOLEAN NOT NULL DEFAULT FALSE;
+-- one resource may serve several skills
+ALTER TABLE learning_resources DROP CONSTRAINT learning_resources_url_key;
+ALTER TABLE learning_resources ADD CONSTRAINT uq_learning_resources_skill_url UNIQUE (skill_id, url);
+
+UPDATE skills s SET learning_topics = v.topics FROM (VALUES
+('sql',                'SELECT, WHERE, ORDER BY; агрегаты и GROUP BY/HAVING; JOIN всех видов; подзапросы и CTE; оконные функции; работа с датами; оптимизация простых запросов'),
+('python',             'Типы данных и коллекции; функции и модули; условия и циклы; работа с файлами; виртуальные окружения и пакеты; основы ООП'),
+('pandas',             'Series и DataFrame; чтение CSV/Excel; фильтрация и индексация; groupby и агрегаты; merge/join; pivot_table; работа с пропусками'),
+('r',                  'Векторы и data frame; tidyverse: dplyr, tidyr; визуализация ggplot2; импорт данных; R Markdown'),
+('java',               'Синтаксис и типы; коллекции; ООП и интерфейсы; исключения; Streams API; сборка Maven/Gradle'),
+('javascript',         'Типы и функции; объекты и массивы; замыкания; DOM; промисы и async/await; модули'),
+('typescript',         'Базовые и составные типы; интерфейсы и type; дженерики; сужение типов; настройка tsconfig'),
+('excel',              'Формулы и ссылки; ВПР/XLOOKUP, ИНДЕКС/ПОИСКПОЗ; сводные таблицы; условное форматирование; Power Query; диаграммы'),
+('power-bi',           'Подключение источников и Power Query; модель данных и связи; основы DAX; визуализации и фильтры; публикация отчёта'),
+('tableau',            'Подключение данных; измерения и меры; вычисляемые поля; дашборды и фильтры; публикация'),
+('git',                'Коммиты и история; ветки и слияние; удалённые репозитории; pull request; разрешение конфликтов'),
+('docker',             'Образы и контейнеры; Dockerfile; тома и сети; docker compose'),
+('spring',             'Spring Boot и автоконфигурация; REST-контроллеры; Spring Data JPA; валидация; тестирование'),
+('react',              'Компоненты и JSX; props и state; хуки; работа с формами; загрузка данных'),
+('jira',               'Задачи и типы задач; доски Scrum/Kanban; workflow; фильтры и JQL; Confluence для документации'),
+('bpmn',               'События, задачи, шлюзы; пулы и дорожки; моделирование AS-IS и TO-BE; типичные ошибки нотации'),
+('uml',                'Диаграмма вариантов использования; диаграмма классов; диаграмма последовательности; диаграмма активностей'),
+('one-c',              'Справочники и документы; проведение и регистры; стандартные отчёты; выгрузка данных'),
+('statistics',         'Описательная статистика; распределения; выборки и доверительные интервалы; проверка гипотез; A/B-тесты; корреляция и регрессия'),
+('data-visualization', 'Выбор типа графика; принципы чистого дизайна; дашборды; сторителлинг с данными'),
+('data-cleaning',      'Пропуски и дубликаты; типы и форматы; выбросы; нормализация категорий; документирование очистки'),
+('machine-learning',   'Постановка задачи; train/test split; линейные модели и деревья; метрики качества; переобучение и валидация'),
+('accounting',         'Принцип двойной записи; план счетов; баланс, ОПиУ, ДДС; начисления и признание выручки'),
+('financial-reporting','Структура отчётности по МСФО; ключевые стандарты (IFRS 15, 16, 9); консолидация; примечания к отчётности'),
+('financial-modeling', 'Структура модели; три формы отчётности и их связь; драйверы и допущения; сценарии и чувствительность; проверки модели'),
+('financial-analysis', 'Горизонтальный и вертикальный анализ; коэффициенты ликвидности, рентабельности, долговой нагрузки; анализ денежных потоков; DuPont'),
+('valuation',          'Стоимость денег во времени; WACC; DCF; сравнительный анализ мультипликаторов; оценка терминальной стоимости'),
+('budgeting',          'Виды бюджетов; бюджет доходов и расходов; план-факт анализ; скользящий прогноз'),
+('requirements',       'Выявление требований и интервью; user stories и критерии приёмки; use cases; функциональные и нефункциональные требования; приоритизация'),
+('process-modeling',   'Описание процессов AS-IS; поиск узких мест; проектирование TO-BE; метрики процесса'),
+('agile',              'Ценности Agile; роли, события и артефакты Scrum; Kanban; планирование и оценка задач'),
+('rest-api',           'HTTP: методы, статусы, заголовки; ресурсы и URL; JSON; аутентификация; документирование OpenAPI'),
+('algorithms',         'Асимптотика; сортировки и поиск; хеш-таблицы; деревья и графы; динамическое программирование'),
+('oop',                'Инкапсуляция, наследование, полиморфизм; принципы SOLID; основные паттерны проектирования'),
+('testing',            'Пирамида тестирования; модульные тесты; моки; интеграционные тесты; TDD'),
+('communication',      'Структура сообщения; презентация результатов; деловая переписка; работа со стейкхолдерами'),
+('english',            'Профессиональная лексика; чтение документации; деловая переписка; собеседование на английском')
+) AS v(slug, topics)
+WHERE s.slug = v.slug;
+
+INSERT INTO learning_resources (skill_id, title, provider, url, type, level, language, is_free, verified_at)
+SELECT s.id, v.title, v.provider, v.url, v.type, v.lvl, v.lang, v.free, TIMESTAMPTZ '2026-11-14 00:00:00+05'
+FROM (VALUES
+('sql', 'SQLBolt — Interactive SQL lessons', 'SQLBolt', 'https://sqlbolt.com/', 'COURSE', 1, 'en', TRUE),
+('sql', 'Intro to SQL', 'Kaggle Learn', 'https://www.kaggle.com/learn/intro-to-sql', 'COURSE', 1, 'en', TRUE),
+('sql', 'Intro to SQL: Querying and managing data', 'Khan Academy', 'https://www.khanacademy.org/computing/computer-programming/sql', 'COURSE', 1, 'en', TRUE),
+('sql', 'SQL Tutorial for Data Analysis', 'Mode', 'https://mode.com/sql-tutorial/', 'ARTICLE', 2, 'en', TRUE),
+('sql', 'Advanced SQL', 'Kaggle Learn', 'https://www.kaggle.com/learn/advanced-sql', 'COURSE', 3, 'en', TRUE),
+('sql', 'PostgreSQL Tutorial (official documentation)', 'PostgreSQL', 'https://www.postgresql.org/docs/current/tutorial.html', 'DOCS', 2, 'en', TRUE),
+('python', 'The Python Tutorial', 'Python.org', 'https://docs.python.org/3/tutorial/', 'DOCS', 1, 'en', TRUE),
+('python', 'Python', 'Kaggle Learn', 'https://www.kaggle.com/learn/python', 'COURSE', 1, 'en', TRUE),
+('pandas', 'Pandas', 'Kaggle Learn', 'https://www.kaggle.com/learn/pandas', 'COURSE', 2, 'en', TRUE),
+('pandas', '10 minutes to pandas', 'pandas.pydata.org', 'https://pandas.pydata.org/docs/user_guide/10min.html', 'DOCS', 2, 'en', TRUE),
+('r', 'R for Data Science (2e)', 'Hadley Wickham et al.', 'https://r4ds.hadley.nz/', 'BOOK', 2, 'en', TRUE),
+('data-cleaning', 'Data Cleaning', 'Kaggle Learn', 'https://www.kaggle.com/learn/data-cleaning', 'COURSE', 2, 'en', TRUE),
+('data-visualization', 'Data Visualization', 'Kaggle Learn', 'https://www.kaggle.com/learn/data-visualization', 'COURSE', 2, 'en', TRUE),
+('excel', 'Excel Tutorials', 'GCFGlobal', 'https://edu.gcfglobal.org/en/excel/', 'COURSE', 1, 'en', TRUE),
+('excel', 'Excel help & learning', 'Microsoft Support', 'https://support.microsoft.com/en-us/excel', 'DOCS', 2, 'en', TRUE),
+('power-bi', 'Get started with Power BI (learning path)', 'Microsoft Learn', 'https://learn.microsoft.com/en-us/training/paths/get-started-power-bi/', 'COURSE', 1, 'en', TRUE),
+('power-bi', 'Power BI training', 'Microsoft Learn', 'https://learn.microsoft.com/en-us/training/powerplatform/power-bi', 'COURSE', 2, 'en', TRUE),
+('power-bi', 'Power BI fundamentals documentation', 'Microsoft Learn', 'https://learn.microsoft.com/en-us/power-bi/fundamentals/', 'DOCS', 2, 'en', TRUE),
+('statistics', 'Statistics and probability', 'Khan Academy', 'https://www.khanacademy.org/math/statistics-probability', 'COURSE', 1, 'en', TRUE),
+('statistics', 'OpenIntro Statistics', 'OpenIntro', 'https://www.openintro.org/book/os/', 'BOOK', 2, 'en', TRUE),
+('machine-learning', 'Intro to Machine Learning', 'Kaggle Learn', 'https://www.kaggle.com/learn/intro-to-machine-learning', 'COURSE', 2, 'en', TRUE),
+('machine-learning', 'Machine Learning Crash Course', 'Google for Developers', 'https://developers.google.com/machine-learning/crash-course', 'COURSE', 2, 'en', TRUE),
+('accounting', 'Accounting and financial statements', 'Khan Academy', 'https://www.khanacademy.org/economics-finance-domain/core-finance/accounting-and-financial-statements', 'COURSE', 1, 'en', TRUE),
+('financial-analysis', 'Accounting and financial statements', 'Khan Academy', 'https://www.khanacademy.org/economics-finance-domain/core-finance/accounting-and-financial-statements', 'COURSE', 1, 'en', TRUE),
+('financial-reporting', 'List of IFRS Accounting Standards', 'IFRS Foundation', 'https://www.ifrs.org/issued-standards/list-of-standards/', 'DOCS', 3, 'en', TRUE),
+('financial-modeling', 'What is Financial Modeling?', 'Corporate Finance Institute', 'https://corporatefinanceinstitute.com/resources/financial-modeling/what-is-financial-modeling/', 'ARTICLE', 2, 'en', TRUE),
+('financial-modeling', 'Finance Theory I (15.401)', 'MIT OpenCourseWare', 'https://ocw.mit.edu/courses/15-401-finance-theory-i-fall-2008/', 'COURSE', 3, 'en', TRUE),
+('valuation', 'Valuation online class', 'Aswath Damodaran, NYU Stern', 'https://pages.stern.nyu.edu/~adamodar/New_Home_Page/webcastvalonline.htm', 'VIDEO', 3, 'en', TRUE),
+('valuation', 'Damodaran Online (datasets, spreadsheets, papers)', 'Aswath Damodaran, NYU Stern', 'https://pages.stern.nyu.edu/~adamodar/', 'DOCS', 3, 'en', TRUE),
+('valuation', 'Stocks and bonds', 'Khan Academy', 'https://www.khanacademy.org/economics-finance-domain/core-finance/stock-and-bonds', 'COURSE', 1, 'en', TRUE),
+('requirements', 'User stories with examples and a template', 'Atlassian', 'https://www.atlassian.com/agile/project-management/user-stories', 'ARTICLE', 1, 'en', TRUE),
+('bpmn', 'BPMN Tutorial', 'Camunda', 'https://camunda.com/bpmn/', 'ARTICLE', 1, 'en', TRUE),
+('bpmn', 'BPMN 2.0 Specification', 'Object Management Group', 'https://www.omg.org/spec/BPMN/2.0/', 'DOCS', 3, 'en', TRUE),
+('process-modeling', 'BPMN Tutorial', 'Camunda', 'https://camunda.com/bpmn/', 'ARTICLE', 1, 'en', TRUE),
+('uml', 'UML diagrams reference', 'uml-diagrams.org', 'https://www.uml-diagrams.org/', 'DOCS', 2, 'en', TRUE),
+('agile', 'The Scrum Guide', 'Scrum.org / Scrum Inc.', 'https://scrumguides.org/scrum-guide.html', 'DOCS', 1, 'en', TRUE),
+('agile', 'Agile coach', 'Atlassian', 'https://www.atlassian.com/agile', 'ARTICLE', 1, 'en', TRUE),
+('jira', 'Jira guides', 'Atlassian', 'https://www.atlassian.com/software/jira/guides', 'DOCS', 1, 'en', TRUE),
+('git', 'Pro Git (book)', 'git-scm.com', 'https://git-scm.com/book/en/v2', 'BOOK', 1, 'en', TRUE),
+('git', 'GitHub Skills', 'GitHub', 'https://skills.github.com/', 'COURSE', 1, 'en', TRUE),
+('docker', 'Get started with Docker', 'Docker Docs', 'https://docs.docker.com/get-started/', 'DOCS', 1, 'en', TRUE),
+('java', 'Learn Java', 'dev.java (Oracle)', 'https://dev.java/learn/', 'DOCS', 1, 'en', TRUE),
+('spring', 'Spring Guides', 'spring.io', 'https://spring.io/guides', 'DOCS', 2, 'en', TRUE),
+('javascript', 'JavaScript Guide', 'MDN Web Docs', 'https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide', 'DOCS', 1, 'en', TRUE),
+('typescript', 'The TypeScript Handbook', 'typescriptlang.org', 'https://www.typescriptlang.org/docs/handbook/intro.html', 'DOCS', 2, 'en', TRUE),
+('react', 'Learn React', 'react.dev', 'https://react.dev/learn', 'DOCS', 2, 'en', TRUE),
+('rest-api', 'An overview of HTTP', 'MDN Web Docs', 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Overview', 'DOCS', 1, 'en', TRUE),
+('algorithms', 'Introduction to Algorithms (6.006)', 'MIT OpenCourseWare', 'https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-spring-2020/', 'COURSE', 3, 'en', TRUE),
+('oop', 'Design Patterns', 'Refactoring.Guru', 'https://refactoring.guru/design-patterns', 'ARTICLE', 2, 'en', TRUE),
+('testing', 'JUnit User Guide', 'JUnit', 'https://docs.junit.org/current/user-guide/', 'DOCS', 2, 'en', TRUE),
+('english', 'BBC Learning English', 'BBC', 'https://www.bbc.co.uk/learningenglish', 'COURSE', 1, 'en', TRUE)
+) AS v(slug, title, provider, url, type, lvl, lang, free)
+JOIN skills s ON s.slug = v.slug;
