@@ -7,6 +7,8 @@ import kz.skillbridge.auth.dto.AuthResponse;
 import kz.skillbridge.auth.dto.LoginRequest;
 import kz.skillbridge.auth.dto.RegisterRequest;
 import kz.skillbridge.common.ApiException;
+import kz.skillbridge.config.AdminProperties;
+import kz.skillbridge.user.Role;
 import kz.skillbridge.user.DesiredLevel;
 import kz.skillbridge.user.User;
 import kz.skillbridge.user.UserProfile;
@@ -28,6 +30,7 @@ public class AuthService {
     private final UserProfileRepository profiles;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final AdminProperties adminProperties;
 
     @Transactional
     public AuthResponse register(RegisterRequest req) {
@@ -42,7 +45,7 @@ public class AuthService {
         return respond(user, profile);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public AuthResponse login(LoginRequest req) {
         User user = users.findByEmailIgnoreCase(normalize(req.email()))
                 .filter(u -> !u.isDemo())
@@ -83,6 +86,9 @@ public class AuthService {
     }
 
     private AuthResponse respond(User user, UserProfile profile) {
+        if (!user.isDemo() && user.getRole() != Role.ADMIN && adminProperties.isAdmin(user.getEmail())) {
+            user.setRole(Role.ADMIN);
+        }
         JwtService.IssuedToken token = jwtService.issue(user);
         return new AuthResponse(token.value(), token.expiresAt(), MeResponse.from(user, profile));
     }

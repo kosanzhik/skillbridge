@@ -32,6 +32,15 @@ skillbridge:
     timeout-seconds: 90
   hh:
     user-agent: ${HH_USER_AGENT:SkillBridge/0.1}
+    base-url: ${HH_BASE_URL:https://api.hh.ru}
+    token-url: ${HH_TOKEN_URL:https://api.hh.ru/token}
+    app-token: ${HH_APP_TOKEN:}
+    client-id: ${HH_CLIENT_ID:}
+    client-secret: ${HH_CLIENT_SECRET:}
+    area: ${HH_AREA:40}   # 40 = Kazakhstan
+    per-profession-limit: 50
+    schedule-enabled: ${HH_SCHEDULE_ENABLED:false}
+  admin-emails: ${ADMIN_EMAILS:}
   storage:
     path: ${STORAGE_PATH:./storage}
   cors:
