@@ -73,17 +73,25 @@ class RemoteJobsImportTests {
         Map<String, Integer> imported = results.stream().filter(r -> r.imported() > 0)
                 .collect(java.util.stream.Collectors.toMap(r -> r.source() + ":" + r.profession(),
                         RemoteJobsImporter.Result::imported));
-        assertThat(imported).containsOnly(Map.entry("REMOTIVE:data-analyst", 1),
-                Map.entry("HIMALAYAS:business-analyst", 1), Map.entry("HIMALAYAS:financial-analyst", 1));
+        // all regions are imported (USA-only and Brazil-only postings too); irrelevant titles are not
+        assertThat(imported).containsOnly(Map.entry("REMOTIVE:data-analyst", 2),
+                Map.entry("HIMALAYAS:business-analyst", 1), Map.entry("HIMALAYAS:financial-analyst", 1),
+                Map.entry("HIMALAYAS:software-engineer", 1));
         assertThat(results).filteredOn(r -> r.source().equals("REMOTIVE") && r.profession().equals("data-analyst"))
                 .singleElement().satisfies(r -> {
-                    assertThat(r.notOpenToCountry()).isEqualTo(1); // "USA" only
-                    assertThat(r.otherProfession()).isEqualTo(1);  // "Office Assistant"
+                    assertThat(r.notOpenToCountry()).isZero();
+                    assertThat(r.otherProfession()).isEqualTo(1); // "Office Assistant"
                 });
         assertThat(jdbc.queryForObject("select count(*) from jobs where source in ('REMOTIVE','HIMALAYAS')",
-                Integer.class)).isEqualTo(4);
+                Integer.class)).isEqualTo(6);
+        assertThat(jdbc.queryForObject("select location from jobs where external_id = '102'", String.class))
+                .isEqualTo("Удалённо · USA");
+        assertThat(jdbc.queryForObject("select location from jobs where title = 'Financial Analyst'", String.class))
+                .isEqualTo("Удалённо · Kazakhstan, Georgia");
+        assertThat(jdbc.queryForObject("select location from jobs where title = 'Software Engineer'", String.class))
+                .isEqualTo("Удалённо · Brazil");
         assertThat(jdbc.queryForObject("select archived from jobs where external_id = 'gone-1'", Boolean.class)).isTrue();
-        assertThat(HIMALAYAS_QUERIES).allMatch(q -> q.contains("country=Kazakhstan"));
+        assertThat(HIMALAYAS_QUERIES).noneMatch(q -> q.contains("country="));
 
         Map<String, Object> da = jdbc.queryForMap("select * from jobs where source = 'REMOTIVE' and external_id = '101'");
         assertThat(da.get("salary_text")).isEqualTo("$40k - $50k");
@@ -109,10 +117,10 @@ class RemoteJobsImportTests {
         mvc.perform(post("/me/career-goals").header("Authorization", auth).contentType(MediaType.APPLICATION_JSON)
                 .content("{\"professionSlug\":\"data-analyst\"}")).andExpect(status().isCreated());
         mvc.perform(get("/me/job-matches").header("Authorization", auth))
-                .andExpect(jsonPath("$.matches.length()").value(1))
-                .andExpect(jsonPath("$.matches[0].job.source").value("REMOTIVE"))
-                .andExpect(jsonPath("$.matches[0].job.remote").value(true))
-                .andExpect(jsonPath("$.matches[0].job.salaryText").value("$40k - $50k"));
+                .andExpect(jsonPath("$.matches.length()").value(2))
+                .andExpect(jsonPath("$.matches[?(@.job.title=='Junior Data Analyst')].job.remote").value(org.hamcrest.Matchers.contains(true)))
+                .andExpect(jsonPath("$.matches[?(@.job.title=='Junior Data Analyst')].job.salaryText")
+                        .value(org.hamcrest.Matchers.contains("$40k - $50k")));
     }
 
     // ---- fake Remotive + Himalayas --------------------------------------------------------------
@@ -141,7 +149,7 @@ class RemoteJobsImportTests {
                            "currency":"USD","salaryPeriod":"monthly","seniority":["Junior"],"employmentType":"Full Time",
                            "description":"<p>Requirements: BPMN, SQL</p>","pubDate":%d,"expiryDate":%d,
                            "guid":"https://himalayas.app/companies/beta/jobs/business-analyst","categories":["Business-Analyst"]},
-                          {"title":"Financial Analyst","companyName":"Gamma","locationRestrictions":["Kazakhstan","Georgia"],
+                          {"title":"Financial Analyst","companyName":"Gamma","locationRestrictions":["Georgia","Kazakhstan"],
                            "minSalary":null,"maxSalary":null,"currency":null,"salaryPeriod":"annual","seniority":["Mid-level"],
                            "description":"<p>Excel, financial modeling</p>","pubDate":%d,"expiryDate":%d,
                            "guid":"https://himalayas.app/companies/gamma/jobs/financial-analyst","categories":[]},

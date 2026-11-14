@@ -19,8 +19,9 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 /**
- * Imports international remote vacancies open to Kazakhstan. Search results of both APIs are fuzzy, so every
- * posting must (1) be open to the country and (2) have a title that matches an MVP profession; others are skipped.
+ * Imports international remote vacancies. Search results of both APIs are fuzzy, so a posting is imported only
+ * when its title matches an MVP profession. The region stays visible in the location; with
+ * {@code only-open-to-country} postings not open to the configured country are skipped as well.
  */
 @Slf4j
 @Service
@@ -67,7 +68,7 @@ public class RemoteJobsImporter {
         int ok = 0;
         int failed = 0;
         for (Candidate c : candidates) {
-            if (!c.openToCountry()) {
+            if (props.onlyOpenToCountry() && !c.openToCountry()) {
                 notOpen++;
                 continue;
             }

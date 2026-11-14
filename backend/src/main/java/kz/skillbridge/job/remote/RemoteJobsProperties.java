@@ -15,6 +15,7 @@ public record RemoteJobsProperties(
         String remotiveBaseUrl,
         String himalayasBaseUrl,
         String country,
+        boolean onlyOpenToCountry,
         int perProfessionLimit,
         int staleAfterDays) {
 }

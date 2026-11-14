@@ -23,18 +23,25 @@ public class HimalayasSource {
 
     private final RemoteJobClient client;
     private final String country;
+    private final boolean onlyOpenToCountry;
 
     public HimalayasSource(RemoteJobsProperties props) {
         this.client = new RemoteJobClient(props.himalayasBaseUrl(), props.userAgent());
         this.country = props.country();
+        this.onlyOpenToCountry = props.onlyOpenToCountry();
     }
 
     public List<Candidate> search(String query, int limit) {
         List<Candidate> out = new ArrayList<>();
         for (int page = 1; out.size() < limit; page++) {
             int p = page;
-            JsonNode res = client.get(u -> u.path("/jobs/api/search").queryParam("q", query)
-                    .queryParam("country", country).queryParam("page", p).build());
+            JsonNode res = client.get(u -> {
+                u.path("/jobs/api/search").queryParam("q", query).queryParam("page", p);
+                if (onlyOpenToCountry) {
+                    u.queryParam("country", country);
+                }
+                return u.build();
+            });
             JsonNode jobs = res.path("jobs");
             if (!jobs.isArray() || jobs.isEmpty()) {
                 break;
@@ -54,6 +61,8 @@ public class HimalayasSource {
         List<String> countries = new ArrayList<>();
         j.path("locationRestrictions").forEach(c -> countries.add(c.asString()));
         boolean open = countries.isEmpty() || countries.stream().anyMatch(c -> c.equalsIgnoreCase(country));
+        // show the user's country first so "available from Kazakhstan" is visible even in long lists
+        countries.sort((a, b) -> Boolean.compare(b.equalsIgnoreCase(country), a.equalsIgnoreCase(country)));
         String region = countries.isEmpty() || countries.size() >= MANY_COUNTRIES ? "Worldwide"
                 : String.join(", ", countries.subList(0, Math.min(3, countries.size())))
                         + (countries.size() > 3 ? " и др." : "");

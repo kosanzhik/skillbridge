@@ -56,6 +56,7 @@ skillbridge:
     remotive-base-url: https://remotive.com
     himalayas-base-url: https://himalayas.app
     country: Kazakhstan
+    only-open-to-country: ${REMOTE_JOBS_ONLY_OPEN_TO_KZ:false}
     per-profession-limit: 60
     stale-after-days: 14
   telegram:

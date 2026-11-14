@@ -81,7 +81,8 @@ export default function JobsPage() {
         Источники: <a className="underline" href="https://hh.kz" target="_blank" rel="noopener">hh.kz</a>,{" "}
         <a className="underline" href="https://remotive.com" target="_blank" rel="noopener">Remotive</a>,{" "}
         <a className="underline" href="https://himalayas.app" target="_blank" rel="noopener">Himalayas</a>.
-        Отклик — на сайте источника по ссылке «Открыть на…».
+        Отклик — на сайте источника по ссылке «Открыть на…». У удалённых вакансий проверьте регион: часть открыта только
+        для отдельных стран.
       </p>
       <details className="mb-6 rounded-xl border p-4 text-sm">
         <summary className="cursor-pointer font-medium">Как считается процент совпадения</summary>
@@ -91,8 +92,8 @@ export default function JobsPage() {
       </details>
       {d.matches.length === 0 ? (
         <Empty title="Вакансий пока нет">
-          Вакансии загружаются из hh.kz и открытых площадок удалённой работы (Remotive, Himalayas) — только
-          доступные из Казахстана. Выдуманных вакансий мы не показываем: если подходящих сейчас нет, список пуст.
+          Вакансии загружаются из hh.kz и открытых площадок удалённой работы (Remotive, Himalayas). Выдуманных
+          вакансий мы не показываем: если подходящих сейчас нет, список пуст.
         </Empty>
       ) : (
         <div className="space-y-4">{d.matches.map((m) => <MatchCard key={m.job.id} m={m} />)}</div>
