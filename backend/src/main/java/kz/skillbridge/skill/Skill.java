@@ -34,6 +34,17 @@ public class Skill {
 
     private String aliases;
 
+    /** ';'-separated topics used for roadmap modules. */
+    @Column(name = "learning_topics")
+    private String learningTopics;
+
+    public List<String> topicList() {
+        if (learningTopics == null || learningTopics.isBlank()) {
+            return List.of();
+        }
+        return Arrays.stream(learningTopics.split(";")).map(String::trim).filter(s -> !s.isEmpty()).toList();
+    }
+
     public List<String> aliasList() {
         if (aliases == null || aliases.isBlank()) {
             return List.of();

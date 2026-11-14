@@ -38,7 +38,7 @@ public class SecurityConfig {
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/**", "/actuator/health", "/error").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/professions/**", "/skills/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/professions/**", "/skills/**", "/learning/**").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(o -> o.jwt(j -> j.jwtAuthenticationConverter(jwtAuthenticationConverter())));

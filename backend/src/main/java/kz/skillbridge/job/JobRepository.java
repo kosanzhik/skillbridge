@@ -18,4 +18,16 @@ public interface JobRepository extends JpaRepository<Job, Long> {
     List<JobSkill> findSkillsForJobs(List<Long> jobIds);
 
     long countByProfessionIdAndArchivedFalse(Long professionId);
+
+    /** [skillId, jobsMentioning, jobsRequiring] over active vacancies of a profession. */
+    @Query("select js.skill.id, count(distinct js.job.id), "
+            + "sum(case when js.requirementType = kz.skillbridge.job.RequirementType.REQUIRED then 1 else 0 end) "
+            + "from JobSkill js where js.job.profession.id = :professionId and js.job.archived = false "
+            + "group by js.skill.id")
+    List<Object[]> skillDemand(Long professionId);
+
+    /** Active vacancies of a profession that have at least one detected requirement. */
+    @Query("select count(distinct js.job.id) from JobSkill js "
+            + "where js.job.profession.id = :professionId and js.job.archived = false")
+    long countJobsWithRequirements(Long professionId);
 }

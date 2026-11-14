@@ -2,11 +2,8 @@ package kz.skillbridge.match;
 
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.EnumSet;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 import kz.skillbridge.career.CareerGoal;
 import kz.skillbridge.career.CareerService;
@@ -21,8 +18,8 @@ import kz.skillbridge.match.dto.JobMatchDto;
 import kz.skillbridge.match.dto.MatchesResponse;
 import kz.skillbridge.match.dto.SkillMatch;
 import kz.skillbridge.skill.SkillSource;
-import kz.skillbridge.skill.UserSkill;
-import kz.skillbridge.skill.UserSkillRepository;
+import kz.skillbridge.skill.SkillProfileService;
+import kz.skillbridge.skill.SkillProfileService.Level;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -49,20 +46,12 @@ public class MatchingService {
             + "Ваш уровень: результат проверки (ASSESSED/VERIFIED), если он есть, иначе максимум из CV и самооценки.";
     static final String DISCLAIMER = "Это оценка соответствия профиля требованиям вакансии, а не вероятность трудоустройства.";
 
-    private static final Set<SkillSource> PROVEN = EnumSet.of(SkillSource.ASSESSED, SkillSource.VERIFIED);
-
     private final CareerService careerService;
     private final ProfessionRepository professions;
     private final JobRepository jobs;
-    private final UserSkillRepository userSkills;
+    private final SkillProfileService skillProfile;
     private final JdbcTemplate jdbc;
     private final JsonMapper json;
-
-    record Level(int level, SkillSource source) {
-        boolean proven() {
-            return PROVEN.contains(source);
-        }
-    }
 
     @Transactional
     public MatchesResponse matchesForPrimaryGoal(Long userId, int limit) {
@@ -75,7 +64,7 @@ public class MatchingService {
                         .collect(Collectors.groupingBy(js -> js.getId().getJobId()));
         Map<Long, Integer> baseline = professions.findRequirements(professionId).stream()
                 .collect(Collectors.toMap(ps -> ps.getSkill().getId(), ps -> (int) ps.getRequiredLevel()));
-        Map<Long, Level> user = effectiveLevels(userId);
+        Map<Long, Level> user = skillProfile.effectiveLevels(userId);
 
         List<JobMatchDto> results = new ArrayList<>();
         for (Job job : candidates) {
@@ -88,19 +77,6 @@ public class MatchingService {
         var p = goal.getProfession();
         return new MatchesResponse(new CareerGoalDto.ProfessionRef(p.getId(), p.getSlug(), p.getTitle()),
                 candidates.size(), METHODOLOGY, DISCLAIMER, results.stream().limit(limit).toList());
-    }
-
-    /** Assessed results override self/CV claims, even when lower. */
-    Map<Long, Level> effectiveLevels(Long userId) {
-        Map<Long, Level> claimed = new HashMap<>();
-        Map<Long, Level> proven = new HashMap<>();
-        for (UserSkill us : userSkills.findByUserIdOrderBySkillName(userId)) {
-            Map<Long, Level> target = PROVEN.contains(us.getSource()) ? proven : claimed;
-            Level l = new Level(us.getLevel(), us.getSource());
-            target.merge(us.getSkill().getId(), l, (a, b) -> a.level() >= b.level() ? a : b);
-        }
-        claimed.putAll(proven);
-        return claimed;
     }
 
     static JobMatchDto score(Job job, List<JobSkill> reqs, Map<Long, Integer> baseline, Map<Long, Level> user) {
