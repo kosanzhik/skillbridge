@@ -1,0 +1,42 @@
+spring:
+  application:
+    name: skillbridge
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${POSTGRES_DB:skillbridge}
+    username: ${POSTGRES_USER:skillbridge}
+    password: ${POSTGRES_PASSWORD:skillbridge}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  flyway:
+    enabled: true
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+
+skillbridge:
+  jwt:
+    secret: ${JWT_SECRET:dev-only-secret-change-me-dev-only-secret-change-me}
+    ttl-minutes: 1440
+  openai:
+    api-key: ${OPENAI_API_KEY:}
+    model: ${OPENAI_MODEL:gpt-4o-mini}
+  hh:
+    user-agent: ${HH_USER_AGENT:SkillBridge/0.1}
+  storage:
+    path: ${STORAGE_PATH:./storage}
+  cors:
+    allowed-origins: ${CORS_ORIGINS:http://localhost:3000}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
