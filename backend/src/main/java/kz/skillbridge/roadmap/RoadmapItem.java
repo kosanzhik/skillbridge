@@ -53,6 +53,10 @@ public class RoadmapItem {
     /** ';'-separated. */
     private String topics;
 
+    /** Skill level that completes this module when reached through an assessment. */
+    @Column(name = "target_level")
+    private Short targetLevel;
+
     @Column(name = "estimated_hours")
     private Integer estimatedHours;
 

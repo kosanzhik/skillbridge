@@ -11,6 +11,9 @@ spring:
     open-in-view: false
   flyway:
     enabled: true
+    placeholders:
+      sandbox_user: ${SANDBOX_DB_USER:skillbridge_sandbox}
+      sandbox_password: ${SANDBOX_DB_PASSWORD:sandbox-dev-only}
   servlet:
     multipart:
       max-file-size: 10MB
@@ -45,6 +48,9 @@ skillbridge:
     channel: ${TELEGRAM_CHANNEL:}   # public username without @, or numeric id -100...
     api-base-url: ${TELEGRAM_API_BASE_URL:https://api.telegram.org}
     polling-enabled: ${TELEGRAM_POLLING_ENABLED:false}
+  sandbox:   # unprivileged DB role for running user SQL in challenges
+    username: ${SANDBOX_DB_USER:skillbridge_sandbox}
+    password: ${SANDBOX_DB_PASSWORD:sandbox-dev-only}
   admin-emails: ${ADMIN_EMAILS:}
   storage:
     path: ${STORAGE_PATH:./storage}

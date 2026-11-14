@@ -16,6 +16,11 @@ public interface RoadmapRepository extends JpaRepository<Roadmap, Long> {
             + "and r.status = kz.skillbridge.roadmap.RoadmapStatus.ACTIVE")
     int archiveActive(Long userId, Long goalId);
 
+    @Query("select i from RoadmapItem i join i.roadmap r where r.userId = :userId and i.skill.id = :skillId "
+            + "and r.status = kz.skillbridge.roadmap.RoadmapStatus.ACTIVE "
+            + "and i.status <> kz.skillbridge.roadmap.ItemStatus.DONE")
+    java.util.List<RoadmapItem> findOpenItemsForSkill(Long userId, Long skillId);
+
     @Query("select i from RoadmapItem i join fetch i.roadmap r where i.id = :itemId and r.userId = :userId")
     Optional<RoadmapItem> findItem(Long itemId, Long userId);
 }

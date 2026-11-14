@@ -13,6 +13,8 @@ import java.util.PriorityQueue;
 import java.util.Set;
 import java.util.stream.Collectors;
 import kz.skillbridge.career.CareerGoal;
+import kz.skillbridge.challenge.ChallengeRepository;
+import kz.skillbridge.challenge.dto.ChallengeRef;
 import kz.skillbridge.career.CareerService;
 import kz.skillbridge.career.Profession;
 import kz.skillbridge.career.dto.CareerGoalDto;
@@ -75,6 +77,7 @@ public class RoadmapService {
     private final SkillRepository skills;
     private final LearningResourceRepository resources;
     private final ProgressRecorder progress;
+    private final ChallengeRepository challenges;
 
     @Transactional
     public RoadmapDto generate(Long userId) {
@@ -98,13 +101,15 @@ public class RoadmapService {
             item.setRoadmap(roadmap);
             item.setSkill(skills.getReferenceById(m.skill().id()));
             item.setPosition(position++);
+            item.setTargetLevel((short) m.requiredLevel());
             item.setTitle(m.skill().name() + ": " + m.currentLevel() + "/5 → " + m.requiredLevel() + "/5");
             item.setGoal("Поднять навык «" + m.skill().name() + "» до уровня " + m.requiredLevel()
                     + "/5, который ожидают работодатели для роли " + profession.getTitle() + ".");
             item.setTopics(String.join(";", skills.findById(m.skill().id()).orElseThrow().topicList()));
             item.setEstimatedHours(m.gap() * HOURS_PER_LEVEL);
-            item.setCompletionCriteria("Изучить темы модуля по материалам и выполнить практическое задание по навыку «"
-                    + m.skill().name() + "»; уровень навыка в профиле — не ниже " + m.requiredLevel() + "/5.");
+            item.setCompletionCriteria("Изучить темы модуля и пройти практическое задание по навыку «"
+                    + m.skill().name() + "». Модуль закроется автоматически, когда подтверждённый заданиями уровень "
+                    + "достигнет " + m.requiredLevel() + "/5 (или отметьте вручную).");
             item.setRationale(rationale(m, gap.jobsAnalyzed(), profession.getTitle()));
             List<LearningResource> rs = bySkill.getOrDefault(m.skill().id(), List.of()).stream()
                     .sorted(Comparator.comparing((LearningResource r) -> r.getLevel() == null ? 9 : r.getLevel()))
@@ -226,12 +231,21 @@ public class RoadmapService {
     }
 
     public RoadmapDto toDto(Roadmap r) {
+        List<Long> skillIds = r.getItems().stream().filter(i -> i.getSkill() != null)
+                .map(i -> i.getSkill().getId()).toList();
+        Map<Long, List<ChallengeRef>> challengesBySkill = skillIds.isEmpty() ? Map.of()
+                : challenges.findBySkillIdInOrderByLevelAscIdAsc(skillIds).stream().collect(Collectors.groupingBy(
+                        c -> c.getSkill().getId(),
+                        Collectors.mapping(c -> new ChallengeRef(c.getId(), c.getTitle(), c.getType(), c.getLevel()),
+                                Collectors.toList())));
         List<RoadmapDto.Item> items = r.getItems().stream().map(i -> new RoadmapDto.Item(
                 i.getId(), i.getPosition(), i.getSkill() == null ? null : SkillDto.from(i.getSkill()), i.getTitle(),
                 i.getGoal(), i.getTopics() == null || i.getTopics().isBlank() ? List.of()
                         : Arrays.stream(i.getTopics().split(";")).map(String::trim).toList(),
                 i.getEstimatedHours(), i.getCompletionCriteria(), i.getRationale(), i.getStatus(), i.getCompletedAt(),
-                i.getResources().stream().map(LearningResourceDto::from).toList())).toList();
+                i.getResources().stream().map(LearningResourceDto::from).toList(),
+                i.getSkill() == null ? List.of() : challengesBySkill.getOrDefault(i.getSkill().getId(), List.of())))
+                .toList();
         int done = (int) items.stream().filter(i -> i.status() == ItemStatus.DONE).count();
         int inProgress = (int) items.stream().filter(i -> i.status() == ItemStatus.IN_PROGRESS).count();
         double percent = items.isEmpty() ? 0 : Math.round(done * 1000.0 / items.size()) / 10.0;

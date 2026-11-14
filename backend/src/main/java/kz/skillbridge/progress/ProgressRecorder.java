@@ -12,6 +12,8 @@ public class ProgressRecorder {
 
     public static final String ROADMAP_GENERATED = "ROADMAP_GENERATED";
     public static final String ROADMAP_ITEM_STATUS_CHANGED = "ROADMAP_ITEM_STATUS_CHANGED";
+    public static final String CHALLENGE_SUBMITTED = "CHALLENGE_SUBMITTED";
+    public static final String SKILL_LEVEL_CHANGED = "SKILL_LEVEL_CHANGED";
 
     private final ProgressEventRepository events;
     private final JsonMapper json;
