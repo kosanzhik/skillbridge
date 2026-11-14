@@ -1,0 +1,6 @@
+# Test overrides (loaded with higher precedence than main application.yml)
+skillbridge:
+  storage:
+    path: target/test-storage
+  openai:
+    api-key: ""

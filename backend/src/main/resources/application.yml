@@ -2,7 +2,7 @@ spring:
   application:
     name: skillbridge
   datasource:
-    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${POSTGRES_DB:skillbridge}
+    url: jdbc:postgresql://${DB_HOST:localhost}:${POSTGRES_PORT:5434}/${POSTGRES_DB:skillbridge}
     username: ${POSTGRES_USER:skillbridge}
     password: ${POSTGRES_PASSWORD:skillbridge}
   jpa:
@@ -28,6 +28,8 @@ skillbridge:
   openai:
     api-key: ${OPENAI_API_KEY:}
     model: ${OPENAI_MODEL:gpt-4o-mini}
+    base-url: ${OPENAI_BASE_URL:https://api.openai.com/v1}
+    timeout-seconds: 90
   hh:
     user-agent: ${HH_USER_AGENT:SkillBridge/0.1}
   storage:

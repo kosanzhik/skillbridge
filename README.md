@@ -21,7 +21,7 @@ skillbridge/
 
 ```bash
 cp .env.example .env
-docker compose up -d postgres
+docker compose up -d postgres   # порт 5434 (POSTGRES_PORT)
 
 # backend
 cd backend && ./mvnw spring-boot:run
@@ -54,15 +54,37 @@ cd frontend && npm install && npm run dev
 | POST | `/auth/demo` | Новый демо-аккаунт с заполненным профилем |
 | GET | `/me` | Текущий пользователь и профиль |
 | PUT | `/me/profile` | Обновление профиля / завершение онбординга |
-| DELETE | `/me` | Удаление аккаунта и всех данных пользователя |
+| DELETE | `/me` | Удаление аккаунта, всех данных и загруженных файлов |
+| GET | `/me/skills` | Навыки пользователя с уровнем и источником (`CV_EXTRACTED`, `ASSESSED`, …) |
+| GET | `/me/background` | Опыт работы и образование |
+| GET | `/skills?q=` | Каталог навыков (публичный) |
+| POST | `/resumes` | Загрузка CV (multipart `file`, PDF ≤ 10 МБ) → извлечение данных |
+| GET | `/resumes`, `/resumes/{id}` | Список / одно CV с извлечёнными данными |
+| GET | `/resumes/{id}/file` | Исходный PDF (только владелец) |
+| POST | `/resumes/{id}/parse` | Повторное извлечение |
+| POST | `/resumes/{id}/confirm` | Подтверждение (с правками пользователя) → сохраняет опыт, образование, навыки |
+| DELETE | `/resumes/{id}` | Удаление CV-файла |
 
 Ошибки возвращаются как RFC 9457 `ProblemDetail` с полем `code` (`EMAIL_TAKEN`, `BAD_CREDENTIALS`, `VALIDATION_ERROR`, …).
+
+## Извлечение данных из CV
+
+- Если задан `OPENAI_API_KEY` — структурированное извлечение через OpenAI (strict JSON schema,
+  `backend/src/main/resources/ai/resume-schema.json`), ответ валидируется и нормализуется на backend.
+- Без ключа (или при ошибке AI) — fallback: поиск навыков из каталога по ключевым словам.
+  Опыт и образование при этом не угадываются — пользователь заполняет их на шаге проверки.
+- Навыки сопоставляются с каталогом по названию и синонимам; несопоставленные возвращаются в
+  `unmatchedSkills` и не сохраняются, пока пользователь не выберет навык из каталога (`skillId`).
+- Уровень навыка из CV — оценка (`CV_EXTRACTED`, `proven: false`), а не подтверждённый результат.
+
+Демо-CV для сценария хакатона: [docs/demo/demo-cv.pdf](docs/demo/demo-cv.pdf) (вымышленный человек).
 
 ## База данных
 
 Миграции Flyway: `backend/src/main/resources/db/migration`
 - `V1__init_schema.sql` — все сущности из спецификации (§9)
 - `V2__seed_catalog.sql` — 4 MVP-профессии, каталог навыков и базовые требования
+- `V3__resume_parser.sql` — тип парсера CV
 
 ## Тесты
 

@@ -4,9 +4,12 @@ import java.time.Instant;
 import kz.skillbridge.common.ApiException;
 import kz.skillbridge.user.dto.MeResponse;
 import kz.skillbridge.user.dto.UpdateProfileRequest;
+import kz.skillbridge.storage.FileStorage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 @Service
 @RequiredArgsConstructor
@@ -14,6 +17,12 @@ public class UserService {
 
     private final UserRepository users;
     private final UserProfileRepository profiles;
+    private final FileStorage storage;
+
+    /** Storage prefix holding all documents of a user. */
+    public static String userFilesPrefix(Long userId) {
+        return "users/" + userId;
+    }
 
     @Transactional(readOnly = true)
     public MeResponse me(Long userId) {
@@ -42,7 +51,12 @@ public class UserService {
         if (users.hardDelete(userId) == 0) {
             throw ApiException.notFound("User");
         }
-        // TODO(step 2): also delete uploaded CV files from storage.
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                storage.deletePrefix(userFilesPrefix(userId));
+            }
+        });
     }
 
     private UserProfile profile(Long userId) {

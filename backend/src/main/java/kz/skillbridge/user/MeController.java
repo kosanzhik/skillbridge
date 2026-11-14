@@ -2,6 +2,7 @@ package kz.skillbridge.user;
 
 import jakarta.validation.Valid;
 import kz.skillbridge.common.CurrentUser;
+import kz.skillbridge.user.dto.BackgroundResponse;
 import kz.skillbridge.user.dto.MeResponse;
 import kz.skillbridge.user.dto.UpdateProfileRequest;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +22,16 @@ import org.springframework.web.bind.annotation.RestController;
 public class MeController {
 
     private final UserService userService;
+    private final ExperienceRepository experiences;
+    private final EducationRepository educations;
+
+    @GetMapping("/background")
+    public BackgroundResponse background(@AuthenticationPrincipal Jwt jwt) {
+        Long id = CurrentUser.id(jwt);
+        return new BackgroundResponse(
+                experiences.findByUserIdOrderByStartDateDesc(id).stream().map(BackgroundResponse.ExperienceDto::from).toList(),
+                educations.findByUserIdOrderByEndYearDesc(id).stream().map(BackgroundResponse.EducationDto::from).toList());
+    }
 
     @GetMapping
     public MeResponse me(@AuthenticationPrincipal Jwt jwt) {
