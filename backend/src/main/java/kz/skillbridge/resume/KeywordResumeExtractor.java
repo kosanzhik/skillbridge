@@ -26,7 +26,7 @@ class KeywordResumeExtractor implements ResumeExtractor {
     public ParsedResume extract(String cvText) {
         List<ParsedSkill> skills = normalizer.findMentions(cvText).entrySet().stream()
                 .map(e -> new ParsedSkill(e.getKey().getName(), ResumeSanitizer.DEFAULT_CV_LEVEL,
-                        "Mentioned in CV: \"" + e.getValue() + "\"", e.getKey().getId(), e.getKey().getName()))
+                        "Упомянуто в CV: «" + e.getValue() + "»", e.getKey().getId(), e.getKey().getName()))
                 .toList();
         return new ParsedResume(null, null, null, List.of(), List.of(), List.of(), List.of(), List.of(), skills);
     }
